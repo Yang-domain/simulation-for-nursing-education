@@ -13,20 +13,28 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
-// 로그
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  next();
-});
-
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "1234";
-
-// ----- 데이터 파일 경로 -----
+// ----- 경로/파일 설정 -----
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_PATH = path.join(__dirname, "transcripts.json");
 
+// [정적 파일 서빙 + 루트 라우트] ← Render에서 URL 하나로 열리게 해줌
+app.use(express.static(__dirname));
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// 로그(선택)
+app.use((req, _res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
+// ----- OpenAI / 관리자 설정 -----
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "1234";
+
+// ----- 저장 도우미 -----
 function readTranscripts() {
   try {
     if (!fs.existsSync(DATA_PATH)) return [];
@@ -40,7 +48,7 @@ function writeTranscripts(list) {
   fs.writeFileSync(DATA_PATH, JSON.stringify(list, null, 2), "utf-8");
 }
 
-// ========== 프롬프트 빌더들 ==========
+// ----- 프롬프트 유틸 -----
 function buildScenarioPrompt(userPrompt, extras) {
   return `
 ${userPrompt}
@@ -109,7 +117,7 @@ function safeParseJsonFromText(t) {
   try { return JSON.parse(m[0]); } catch { return null; }
 }
 
-// ========== AI 엔드포인트들 ==========
+// ====== API 엔드포인트 ======
 
 // (A) 시나리오 생성
 app.post("/api/generate-scenario", async (req, res) => {
@@ -130,7 +138,7 @@ app.post("/api/generate-scenario", async (req, res) => {
   }
 });
 
-// (B) 환자 응답(대화 지침)
+// (B) 환자 응답
 app.post("/api/chat", async (req, res) => {
   try {
     const { scenario, history = [], message } = req.body || {};
@@ -148,7 +156,7 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-// (C) 디브리핑 요약/점수
+// (C) 디브리핑
 app.post("/api/debrief", async (req, res) => {
   try {
     const { student, scenario, history = [] } = req.body || {};
@@ -165,9 +173,7 @@ app.post("/api/debrief", async (req, res) => {
   }
 });
 
-// ========== 저장/열람 엔드포인트들 (그대로 사용) ==========
-
-// 학생 세션 저장 (학번/이름 포함)
+// (D) 학생 세션 저장(학번/이름 포함)
 app.post("/api/transcript", (req, res) => {
   try {
     const { student = {}, scenario, history = [] } = req.body || {};
@@ -191,7 +197,7 @@ app.post("/api/transcript", (req, res) => {
   }
 });
 
-// 관리자: 목록 조회 (학번/이름 포함)
+// (E) 관리자 조회
 app.get("/api/transcripts", (req, res) => {
   const pw = (req.query.password || "").trim();
   if (pw !== ADMIN_PASSWORD) return res.status(401).json({ error: "unauthorized" });
@@ -199,7 +205,6 @@ app.get("/api/transcripts", (req, res) => {
   res.json(list);
 });
 
-// 관리자: 단건 조회
 app.get("/api/transcripts/:id", (req, res) => {
   const pw = (req.query.password || "").trim();
   if (pw !== ADMIN_PASSWORD) return res.status(401).json({ error: "unauthorized" });
@@ -210,6 +215,7 @@ app.get("/api/transcripts/:id", (req, res) => {
   res.json(found);
 });
 
+// ----- 실행 -----
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running: http://localhost:${PORT}`);
