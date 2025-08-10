@@ -7,34 +7,37 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-dotenv.config();
+// ── 경로 계산 (ESM에서 __dirname 대체)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ── .env 명시적으로 로드 (로컬에서 확실히 적용)
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
-// ----- 경로/파일 설정 -----
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const DATA_PATH = path.join(__dirname, "transcripts.json");
-
-// [정적 파일 서빙 + 루트 라우트] ← Render에서 URL 하나로 열리게 해줌
+// ── 정적 파일 서빙 + 루트 라우트 (Render에서 직접 열리게)
 app.use(express.static(__dirname));
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// 로그(선택)
+// ── 로그(선택)
 app.use((req, _res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
-// ----- OpenAI / 관리자 설정 -----
+// ── OpenAI / 관리자 설정
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "1234";
 
-// ----- 저장 도우미 -----
+// ── 데이터 파일 경로
+const DATA_PATH = path.join(__dirname, "transcripts.json");
+
+// ── 저장 유틸
 function readTranscripts() {
   try {
     if (!fs.existsSync(DATA_PATH)) return [];
@@ -48,7 +51,7 @@ function writeTranscripts(list) {
   fs.writeFileSync(DATA_PATH, JSON.stringify(list, null, 2), "utf-8");
 }
 
-// ----- 프롬프트 유틸 -----
+// ── 프롬프트 빌더
 function buildScenarioPrompt(userPrompt, extras) {
   return `
 ${userPrompt}
@@ -68,10 +71,11 @@ ${userPrompt}
 `.trim();
 }
 
+// ⬇⬇⬇ 중요: .env 지침이 100% 우선되도록 하드코딩 제거
 function buildPatientPrompt({ guidePrompt, scenario, history, userMessage }) {
   const log = (history || []).map(h => `${h.who}: ${h.text}`).join("\n");
   return `
-${guidePrompt}
+${guidePrompt || "당신은 가상의 환자입니다. 한국어로만 답하세요."}
 
 [시나리오]
 ${scenario || "시나리오 정보 없음"}
@@ -82,7 +86,7 @@ ${log}
 [학생의 최신 발화]
 학생: ${userMessage}
 
-환자: (한국어, 1~3문장)
+환자:
 `.trim();
 }
 
@@ -117,7 +121,7 @@ function safeParseJsonFromText(t) {
   try { return JSON.parse(m[0]); } catch { return null; }
 }
 
-// ====== API 엔드포인트 ======
+// ── API
 
 // (A) 시나리오 생성
 app.post("/api/generate-scenario", async (req, res) => {
@@ -145,7 +149,7 @@ app.post("/api/chat", async (req, res) => {
     if (!message) return res.status(400).json({ error: "message required" });
 
     const guide = process.env.PATIENT_GUIDE_PROMPT
-      || "당신은 가상의 환자다. 한국어, 1~3문장, 설정을 벗어나지 말 것. 질문에 맞게 구체적으로 답하되 과도한 의학 조언은 금지.";
+      || "당신은 가상의 환자다. 한국어로 대화하고 설정을 벗어나지 말 것.";
     const input = buildPatientPrompt({ guidePrompt: guide, scenario, history, userMessage: message });
 
     const r = await client.responses.create({ model: "gpt-4o-mini", input });
@@ -173,7 +177,7 @@ app.post("/api/debrief", async (req, res) => {
   }
 });
 
-// (D) 학생 세션 저장(학번/이름 포함)
+// (D) 학생 세션 저장
 app.post("/api/transcript", (req, res) => {
   try {
     const { student = {}, scenario, history = [] } = req.body || {};
@@ -215,7 +219,21 @@ app.get("/api/transcripts/:id", (req, res) => {
   res.json(found);
 });
 
-// ----- 실행 -----
+// (옵션) 디버그: 프롬프트 로딩 확인용 (길이/앞부분만 노출)
+app.get("/api/_debug_prompts", (req, res) => {
+  const pw = (req.query.password || "").trim();
+  if (pw !== (process.env.ADMIN_PASSWORD || "1234")) {
+    return res.status(401).json({ error: "unauthorized" });
+  }
+  const mask = (v) => v ? { length: v.length, head: v.slice(0, 60) } : null;
+  res.json({
+    scenario: mask(process.env.SCENARIO_PROMPT),
+    patient:  mask(process.env.PATIENT_GUIDE_PROMPT),
+    debrief:  mask(process.env.DEBRIEF_PROMPT)
+  });
+});
+
+// ── 실행
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running: http://localhost:${PORT}`);
