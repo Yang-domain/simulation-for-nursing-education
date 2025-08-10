@@ -5,6 +5,25 @@
   <title>간호학생 시뮬레이션 학습</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* 최소한의 기본 스타일 (styles.css가 있다면 그대로 두셔도 됩니다) */
+    :root { --line:#e5e7eb; --blue:#2563eb; --text:#111827; --muted:#6b7280; }
+    body { margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, 'Noto Sans KR', Arial, sans-serif; color:var(--text); background:#fff; }
+    .site-header { border-bottom:1px solid var(--line); padding:16px 20px; }
+    .site-header h1 { margin:0 0 8px; font-size:20px; }
+    nav ul { margin:0; padding:0; display:flex; gap:12px; list-style:none; }
+    nav a { color:var(--blue); text-decoration:none; }
+    .container { max-width:980px; margin:24px auto; padding:0 16px; }
+    .card { border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:16px; background:#fff; }
+    .btn { padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:#fff; cursor:pointer; }
+    .btn.primary { background:var(--blue); color:#fff; border-color:var(--blue); }
+    .hint { color:var(--muted); font-size:13px; }
+    .scenario-box, .chat-box, .debrief { border:1px solid var(--line); border-radius:10px; padding:12px; background:#fafafa; margin-top:12px; }
+    .chat-box { min-height:180px; max-height:320px; overflow:auto; }
+    .chat-input-row { display:flex; gap:8px; margin-top:8px; }
+    .chat-input-row input { flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:10px; }
+    pre { background:#f8fafc; padding:12px; border-radius:10px; border:1px solid var(--line); }
+  </style>
 </head>
 <body>
   <header class="site-header">
@@ -25,14 +44,14 @@
       <h2>역할 선택</h2>
       <p>접속 역할을 선택하세요. (관리자는 비밀번호 필요)</p>
 
-      <!-- 학생용 입력 -->
+      <!-- 학생용 -->
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; align-items:center;">
         <input id="student-id" type="text" placeholder="학번" style="padding:10px 12px; border:1px solid var(--line); border-radius:10px;">
         <input id="student-name" type="text" placeholder="이름" style="padding:10px 12px; border:1px solid var(--line); border-radius:10px;">
         <button id="enter-student" class="btn primary">학생으로 시작</button>
       </div>
 
-      <!-- 관리자용 입력 -->
+      <!-- 관리자용 -->
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; align-items:center;">
         <input id="admin-pass" type="password" placeholder="관리자 비밀번호" style="padding:10px 12px; border:1px solid var(--line); border-radius:10px;">
         <button id="enter-admin" class="btn">관리자 접속</button>
