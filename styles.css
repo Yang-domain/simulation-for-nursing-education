@@ -1,0 +1,152 @@
+/* =========================
+   Light UI — White + Blue
+   ========================= */
+:root{
+  --bg: #f2f6ff;          /* 전체 배경(매우 밝은 톤) */
+  --surface: #ffffff;      /* 카드/입력 배경 */
+  --text: #1f2937;         /* 본문 텍스트(짙은 회색) */
+  --muted: #667085;        /* 보조 텍스트 */
+  --line: #e6edf6;         /* 경계선 */
+  --accent: #2b8cff;       /* 포인트(파란색) */
+  --accent-600:#1f6fe0;    /* 포인트 hover */
+  --accent-50:#eaf3ff;     /* 아주 옅은 파랑(배경 하이라이트) */
+  --success:#14b85a;
+  --warning:#f3a316;
+}
+
+*{ box-sizing:border-box; }
+html, body{ height:100%; }
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* 레이아웃 */
+.container{ max-width:1000px; margin:0 auto; padding:20px; }
+.site-header, .site-footer{
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.site-footer{ border-top:1px solid var(--line); border-bottom:none; color:var(--muted); }
+.site-header h1, .site-footer p{ margin:0; padding:16px 20px; }
+
+/* 내비게이션 */
+nav ul{ list-style:none; padding:0 20px 16px; margin:0; display:flex; gap:12px; flex-wrap:wrap; }
+nav a{
+  display:inline-block;
+  padding:8px 12px;
+  border-radius:10px;
+  color: var(--accent);
+  text-decoration:none;
+  background: transparent;
+  border:1px solid transparent;
+}
+nav a:hover{
+  background: var(--accent-50);
+  border-color: var(--accent-50);
+}
+
+/* 카드(섹션) */
+.card{
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  margin: 16px 0;
+  box-shadow: 0 8px 24px rgba(16,24,40,.04);
+}
+.card h2{ margin:0 0 8px; }
+.card p{ color: var(--muted); margin-top:4px; }
+
+/* 버튼 */
+.btn{
+  background: transparent;
+  color: var(--text);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px 14px;
+  cursor:pointer;
+  transition: all .15s ease;
+}
+.btn:hover{ background:#f3f7fe; border-color:#d9e6ff; }
+.btn.primary{
+  background: var(--accent);
+  color:#fff;
+  border-color: var(--accent);
+  font-weight:700;
+}
+.btn.primary:hover{ background: var(--accent-600); border-color: var(--accent-600); }
+.btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+/* 시나리오 박스 */
+.scenario-box{
+  margin-top:12px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  min-height: 90px;
+  white-space: pre-wrap;
+}
+.scenario-box strong{ color: var(--text); }
+
+/* 채팅 영역 */
+.chat-box{
+  height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px;
+}
+.chat-row{ 
+  margin: 10px 0; 
+  line-height: 1.45;
+}
+.chat-row strong{
+  display:inline-block; 
+  min-width: 52px; 
+  font-weight:700;
+  color:#1553b3;                  /* 이름 라벨 기본색(파랑계열) */
+}
+.chat-row.me strong{ color:#0b7bd3; }   /* 학생 라벨 */
+.chat-row.pt strong{ color:#287a2f; }   /* 환자 라벨(녹청 느낌) */
+.chat-row.system strong{ color:#6b7280; } /* 시스템 라벨 */
+
+.chat-input-row{
+  display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:10px;
+}
+#chat-input{
+  padding:10px 12px; border-radius:10px; border:1px solid var(--line);
+  background:#fff; color:var(--text);
+  outline:none;
+}
+#chat-input:focus{
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(43,140,255,.15);
+}
+
+/* 힌트/보조 텍스트 */
+.hint{ color: var(--muted); margin-top:8px; }
+
+/* 디브리핑 결과 */
+.debrief h4{ margin:10px 0 6px; }
+.debrief ul{ margin: 8px 0 12px 18px; color: var(--text); }
+.debrief li{ margin: 4px 0; }
+.debrief strong{ color: var(--text); }
+
+/* 접근성: 포커스 공통 스타일 */
+a:focus, button:focus{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(43,140,255,.3);
+  border-radius: 10px;
+}
+
+/* 반응형 */
+@media (max-width: 560px){
+  nav ul{ padding: 0 16px 12px; }
+  .container{ padding: 16px; }
+  .chat-box{ height: 280px; }
+}

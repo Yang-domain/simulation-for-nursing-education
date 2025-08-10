@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>간호학생 시뮬레이션 학습</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>간호학생 시뮬레이션 학습</h1>
+    <nav>
+      <ul>
+        <li><a href="#scenario">시나리오 생성</a></li>
+        <li><a href="#chat">가상 환자와의 대화</a></li>
+        <li><a href="#debrief">디브리핑</a></li>
+        <li><a href="#admin">관리자</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- 0. 역할 선택 -->
+    <section id="role" class="card">
+      <h2>역할 선택</h2>
+      <p>접속 역할을 선택하세요. (관리자는 비밀번호 필요)</p>
+
+      <!-- 학생용 입력 -->
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; align-items:center;">
+        <input id="student-id" type="text" placeholder="학번" style="padding:10px 12px; border:1px solid var(--line); border-radius:10px;">
+        <input id="student-name" type="text" placeholder="이름" style="padding:10px 12px; border:1px solid var(--line); border-radius:10px;">
+        <button id="enter-student" class="btn primary">학생으로 시작</button>
+      </div>
+
+      <!-- 관리자용 입력 -->
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; align-items:center;">
+        <input id="admin-pass" type="password" placeholder="관리자 비밀번호" style="padding:10px 12px; border:1px solid var(--line); border-radius:10px;">
+        <button id="enter-admin" class="btn">관리자 접속</button>
+      </div>
+      <p class="hint" style="margin-top:8px;">※ 초기 비밀번호: <strong>1234</strong></p>
+    </section>
+
+    <!-- 1. 시나리오 생성 -->
+    <section id="scenario" class="card" hidden>
+      <h2>1. 임상 시나리오 생성</h2>
+      <p>버튼을 누르면 무작위 임상 시나리오가 생성됩니다.</p>
+      <button id="generate-scenario" class="btn primary">시나리오 생성</button>
+      <div id="scenario-display" class="scenario-box"></div>
+    </section>
+
+    <!-- 2. 가상 환자와의 채팅 -->
+    <section id="chat" class="card" hidden>
+      <h2>2. 가상 환자와의 대화</h2>
+      <p>아래 입력창을 통해 가상 환자와 대화하세요.</p>
+      <div id="chat-box" class="chat-box"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="메시지를 입력하세요..." />
+        <button id="send-message" class="btn primary">전송</button>
+      </div>
+      <div style="margin-top:10px; display:flex; gap:8px;">
+        <button id="save-session" class="btn">세션 저장</button>
+        <span class="hint">※ 시나리오/대화 로그를 서버에 저장합니다(관리자 전용 열람).</span>
+      </div>
+      <p class="hint">※ 먼저 위에서 <strong>시나리오 생성</strong>을 눌러주세요.</p>
+    </section>
+
+    <!-- 3. 디브리핑 -->
+    <section id="debrief" class="card" hidden>
+      <h2>3. 디브리핑</h2>
+      <p>대화 내용을 바탕으로 간단히 의사소통을 평가합니다.</p>
+      <button id="run-debrief" class="btn">디브리핑 시작</button>
+      <div id="debrief-result" class="debrief"></div>
+    </section>
+
+    <!-- 4. 관리자 -->
+    <section id="admin" class="card" hidden>
+      <h2>관리자 화면</h2>
+      <p>학생 대화 로그 열람</p>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+        <input id="admin-pass-verify" type="password" placeholder="관리자 비밀번호(재확인)" style="padding:10px 12px; border:1px solid var(--line); border-radius:10px;">
+        <button id="load-logs" class="btn primary">대화 목록 불러오기</button>
+      </div>
+      <div style="display:grid; grid-template-columns: 320px 1fr; gap:12px;">
+        <div>
+          <div class="scenario-box" style="min-height:260px;">
+            <strong>대화 목록</strong>
+            <ul id="log-list" style="margin:8px 0 0 18px;"></ul>
+          </div>
+        </div>
+        <div>
+          <div class="scenario-box" style="min-height:260px;">
+            <strong>세션 상세</strong>
+            <pre id="log-view" style="white-space:pre-wrap; margin-top:8px;"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; 2025 간호학생 시뮬레이션 학습</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
