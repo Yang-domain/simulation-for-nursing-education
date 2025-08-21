@@ -4,21 +4,10 @@ let history = []; // [{ who: "학생"|"환자"|"시스템", text: "..." }]
 let student = { id: "", name: "" };
 let latestReport = null; // ← 디브리핑 결과 저장해서 함께 저장 전송
 
-// ===== API 베이스 자동 감지 =====
-// - Node 서버와 같은 오리진(예: http://localhost:3000)으로 접속했다면 ""(상대경로) 사용
-// - Live Server(보통 5500) 등 다른 오리진이면 http://localhost:3000 으로 고정 (또는 localStorage API_BASE 우선)
-const API_BASE = (() => {
-  try {
-    const origin = window.location.origin;
-    if (/:(3000)$/.test(origin)) return "";
-    const saved = localStorage.getItem("API_BASE");
-    if (saved) return saved.replace(/\/$/, "");
-    return "http://localhost:3000";
-  } catch {
-    return "http://localhost:3000";
-  }
-})();
-const api = (p) => (API_BASE ? `${API_BASE}${p}` : p);
+// ===== API 베이스 (Render 서버 주소 고정) =====
+// 👇 여기만 Render에 배포된 server.js 주소로 바꿔주세요!
+const API_BASE = "https://simulation-for-nursing-education.onrender.com/";
+const api = (p) => `${API_BASE}${p}`;
 
 // ===== 공용 DOM =====
 const roleSec     = document.getElementById("role");
