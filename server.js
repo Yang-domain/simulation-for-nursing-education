@@ -57,43 +57,63 @@ app.post("/api/generate-scenario", async (req, res) => {
 });
 
 
-// API: 채팅
+//  API: 채팅
 app.post("/api/chat", async (req, res) => {
   try {
     const CHAT_PROMPT = process.env.CHAT_PROMPT; // 환경변수 그대로 유지
     const { scenario, history, message } = req.body;
 
     const messages = [
-      // 규칙 (환경변수 CHAT_PROMPT)
+      //  강력한 규칙 (환경변수 CHAT_PROMPT)
       ...(CHAT_PROMPT ? [{ role: "system", content: CHAT_PROMPT }] : []),
 
-      // 시나리오 (참고용)
+      //  시나리오 정보 (참고용)
       {
         role: "system",
         content: `시나리오: ${scenario}`
       },
 
-      // 이전 대화 히스토리
+      //  이전 대화 히스토리
       ...history.map(h => ({
         role: h.who === "학생" ? "user" : "assistant",
         content: h.text
       })),
 
-      // 새 입력된 학생 메시지
+      //  새 입력된 학생 메시지
       { role: "user", content: message }
     ];
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages
+      messages,
+      //  출력 형식 강제 (JSON object, reply 키만 허용)
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "patient_reply",
+          schema: {
+            type: "object",
+            properties: {
+              reply: { type: "string" }
+            },
+            required: ["reply"],
+            additionalProperties: false
+          }
+        }
+      }
     });
 
-    res.json({ reply: completion.choices[0].message.content });
+    //  모델 출력(JSON) 파싱
+    const content = completion.choices[0].message.content;
+    const parsed = JSON.parse(content);
+
+    res.json({ reply: parsed.reply });
   } catch (err) {
     console.error("채팅 오류:", err);
     res.status(500).json({ error: "채팅 실패" });
   }
 });
+
 
 
 //  API: 디브리핑
