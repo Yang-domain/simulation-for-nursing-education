@@ -76,14 +76,13 @@ app.post("/api/chat", async (req, res) => {
 - 의학 용어 대신 일상적인 표현만 사용할 것
 
 [대화 규칙]
-1. 상대방이 인사만 하면 → 간단히 인사만 답한다
+1. 상대방이 인사하면 인사를 받아준다.
 2. 상대방이 이름을 물으면 → 이름만 말한다
-3. 절대로 새로운 질문을 하지 않는다
-4. 상대방이 묻지 않은 정보는 말하지 않는다
+3. 상대방이 묻지 않은 정보는 말하지 않는다
 `
       },
 
-      // 🔹 시나리오 정보 (참고용 → user role로 변경)
+      // 🔹 시나리오 정보 (참고용 → user role로 전달)
       {
         role: "user",
         content: `배경 시나리오 정보입니다. 참고만 하세요: ${scenario}`
@@ -99,36 +98,22 @@ app.post("/api/chat", async (req, res) => {
       { role: "user", content: message }
     ];
 
+    // 🔹 모델 호출 (JSON 강제 제거)
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages,
-      // 🔹 출력 형식 강제 (JSON, reply 키만 허용)
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "patient_reply",
-          schema: {
-            type: "object",
-            properties: {
-              reply: { type: "string" }
-            },
-            required: ["reply"],
-            additionalProperties: false
-          }
-        }
-      }
+      messages
     });
 
-    // 🔹 모델 출력(JSON) 파싱
+    // 🔹 모델 출력 그대로 가져오기
     const content = completion.choices[0].message.content;
-    const parsed = JSON.parse(content);
 
-    res.json({ reply: parsed.reply });
+    res.json({ reply: content });
   } catch (err) {
     console.error("채팅 오류:", err);
     res.status(500).json({ error: "채팅 실패" });
   }
 });
+
 
 
 //  API: 디브리핑
