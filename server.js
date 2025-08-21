@@ -179,20 +179,26 @@ You must ONLY return valid JSON following this schema, without extra text.
       response_format: { type: "json_object" }
     });
 
+    console.log("===== COMPLETION RAW RESPONSE =====");
+    console.log(JSON.stringify(completion, null, 2));
+
     let report = {};
+    const content = completion?.choices?.[0]?.message?.content;
+
     try {
-      report = JSON.parse(completion.choices[0].message.content);
-    } catch {
-      // JSON 파싱 실패 시 fallback
-      report = { summary: completion.choices[0].message.content || "No output" };
+      report = content ? JSON.parse(content) : { summary: "No content returned" };
+    } catch (parseErr) {
+      console.error("JSON 파싱 오류:", parseErr);
+      report = { summary: content || "Invalid JSON output" };
     }
 
     res.json({ report });
   } catch (err) {
-    console.error("디브리핑 오류:", err);
+    console.error("디브리핑 오류:", err.response?.data || err.message || err);
     res.status(500).json({ error: "디브리핑 실패" });
   }
 });
+
 
 
 //  API: 기록 저장
