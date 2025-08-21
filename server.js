@@ -48,7 +48,9 @@ app.post("/api/generate-scenario", async (req, res) => {
       response_format: { type: "json_object" }
     });
 
-    const scenario = JSON.parse(completion.choices[0].message.content);
+    const content = completion?.choices?.[0]?.message?.content;
+    const scenario = content ? JSON.parse(content) : {};
+
     res.json({ scenario });
   } catch (err) {
     console.error("시나리오 오류:", err);
@@ -94,7 +96,7 @@ reply 필드만 포함해야 하며, 그 외 다른 키는 절대 넣지 않는�
       // 🔹 시나리오 정보 (참고용 → user role로 전달)
       {
         role: "user",
-        content: `배경 시나리오 정보입니다. 참고만 하세요: ${scenario}`
+        content: `배경 시나리오 정보입니다. 참고만 하세요: ${JSON.stringify(scenario)}`
       },
 
       // 🔹 이전 대화 히스토리
@@ -114,8 +116,10 @@ reply 필드만 포함해야 하며, 그 외 다른 키는 절대 넣지 않는�
     });
 
     // 🔹 모델 출력(JSON) 파싱
-    const content = completion.choices[0].message.content;
+    const content = completion?.choices?.[0]?.message?.content;
+    if (!content) throw new Error("모델이 응답을 반환하지 않았습니다.");
     const parsed = JSON.parse(content);
+
 
     res.json({ reply: parsed.reply });
   } catch (err) {
@@ -241,7 +245,7 @@ app.get("/api/transcripts/:id", (req, res) => {
 
 // ----- 서버 실행 -----
 //  Render는 반드시 process.env.PORT 사용해야 함
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
