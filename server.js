@@ -342,6 +342,7 @@ app.get("/api/_debug_prompts", (req, res) => {
   });
 });
 
+const PORT = process.env.PORT || 3000;  // Render가 제공하는 PORT, 없으면 로컬에서 3000번 사용
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
