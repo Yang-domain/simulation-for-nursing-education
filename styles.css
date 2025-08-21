@@ -2,14 +2,14 @@
    Light UI — White + Blue
    ========================= */
 :root{
-  --bg: #f2f6ff;          /* 전체 배경(매우 밝은 톤) */
-  --surface: #ffffff;      /* 카드/입력 배경 */
-  --text: #1f2937;         /* 본문 텍스트(짙은 회색) */
-  --muted: #667085;        /* 보조 텍스트 */
-  --line: #e6edf6;         /* 경계선 */
-  --accent: #2b8cff;       /* 포인트(파란색) */
-  --accent-600:#1f6fe0;    /* 포인트 hover */
-  --accent-50:#eaf3ff;     /* 아주 옅은 파랑(배경 하이라이트) */
+  --bg: #f2f6ff;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #667085;
+  --line: #e6edf6;
+  --accent: #2b8cff;
+  --accent-600:#1f6fe0;
+  --accent-50:#eaf3ff;
   --success:#14b85a;
   --warning:#f3a316;
 }
@@ -23,30 +23,19 @@ body{
   background: var(--bg);
 }
 
-/* 레이아웃 */
-.container{ max-width:1000px; margin:0 auto; padding:20px; }
-.site-header, .site-footer{
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
-}
+/* 레이아웃 (바깥 컨테이너 넉넉하게) */
+.container{ max-width:1680px; margin:0 auto; padding:20px; }
+.site-header, .site-footer{ background: var(--surface); border-bottom: 1px solid var(--line); }
 .site-footer{ border-top:1px solid var(--line); border-bottom:none; color:var(--muted); }
 .site-header h1, .site-footer p{ margin:0; padding:16px 20px; }
 
 /* 내비게이션 */
 nav ul{ list-style:none; padding:0 20px 16px; margin:0; display:flex; gap:12px; flex-wrap:wrap; }
 nav a{
-  display:inline-block;
-  padding:8px 12px;
-  border-radius:10px;
-  color: var(--accent);
-  text-decoration:none;
-  background: transparent;
-  border:1px solid transparent;
+  display:inline-block; padding:8px 12px; border-radius:10px;
+  color: var(--accent); text-decoration:none; background: transparent; border:1px solid transparent;
 }
-nav a:hover{
-  background: var(--accent-50);
-  border-color: var(--accent-50);
-}
+nav a:hover{ background: var(--accent-50); border-color: var(--accent-50); }
 
 /* 카드(섹션) */
 .card{
@@ -62,91 +51,176 @@ nav a:hover{
 
 /* 버튼 */
 .btn{
-  background: transparent;
-  color: var(--text);
-  border:1px solid var(--line);
-  border-radius:10px;
-  padding:10px 14px;
-  cursor:pointer;
-  transition: all .15s ease;
+  background: transparent; color: var(--text);
+  border:1px solid var(--line); border-radius:10px;
+  padding:10px 14px; cursor:pointer; transition: all .15s ease;
 }
 .btn:hover{ background:#f3f7fe; border-color:#d9e6ff; }
-.btn.primary{
-  background: var(--accent);
-  color:#fff;
-  border-color: var(--accent);
-  font-weight:700;
-}
+.btn.primary{ background: var(--accent); color:#fff; border-color: var(--accent); font-weight:700; }
 .btn.primary:hover{ background: var(--accent-600); border-color: var(--accent-600); }
 .btn:disabled{ opacity:.6; cursor:not-allowed; }
 
 /* 시나리오 박스 */
 .scenario-box{
-  margin-top:12px;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 12px;
-  min-height: 90px;
-  white-space: pre-wrap;
+  margin-top:12px; background: #fff; border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px; min-height: 90px; white-space: pre-wrap;
 }
 .scenario-box strong{ color: var(--text); }
 
 /* 채팅 영역 */
 .chat-box{
-  height: 320px;
-  overflow-y: auto;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: #fff;
-  padding: 12px;
+  height: 320px; overflow-y: auto; border: 1px solid var(--line);
+  border-radius: 12px; background: #fff; padding: 12px;
 }
-.chat-row{ 
-  margin: 10px 0; 
-  line-height: 1.45;
-}
-.chat-row strong{
-  display:inline-block; 
-  min-width: 52px; 
-  font-weight:700;
-  color:#1553b3;                  /* 이름 라벨 기본색(파랑계열) */
-}
-.chat-row.me strong{ color:#0b7bd3; }   /* 학생 라벨 */
-.chat-row.pt strong{ color:#287a2f; }   /* 환자 라벨(녹청 느낌) */
-.chat-row.system strong{ color:#6b7280; } /* 시스템 라벨 */
+.chat-row{ margin: 10px 0; line-height: 1.45; }
+.chat-row strong{ display:inline-block; min-width: 52px; font-weight:700; color:#1553b3; }
+.chat-row.me strong{ color:#0b7bd3; }
+.chat-row.pt strong{ color:#287a2f; }
+.chat-row.system strong{ color:#6b7280; }
 
-.chat-input-row{
-  display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:10px;
-}
+.chat-input-row{ display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:10px; }
 #chat-input{
   padding:10px 12px; border-radius:10px; border:1px solid var(--line);
-  background:#fff; color:var(--text);
-  outline:none;
+  background:#fff; color:var(--text); outline:none;
 }
-#chat-input:focus{
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(43,140,255,.15);
-}
+#chat-input:focus{ border-color: var(--accent); box-shadow: 0 0 0 3px rgba(43,140,255,.15); }
 
 /* 힌트/보조 텍스트 */
 .hint{ color: var(--muted); margin-top:8px; }
 
-/* 디브리핑 결과 */
-.debrief h4{ margin:10px 0 6px; }
-.debrief ul{ margin: 8px 0 12px 18px; color: var(--text); }
-.debrief li{ margin: 4px 0; }
-.debrief strong{ color: var(--text); }
-
 /* 접근성: 포커스 공통 스타일 */
-a:focus, button:focus{
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(43,140,255,.3);
-  border-radius: 10px;
+a:focus, button:focus{ outline: none; box-shadow: 0 0 0 3px rgba(43,140,255,.3); border-radius: 10px; }
+
+/* ===================== */
+/* 관리자 화면: 목록/상세 */
+/* ===================== */
+
+/* (1) 좌우 2열 카드 배치 */
+#admin .card:has(#log-list),
+#admin .card:has(#log-view){
+  display:flex;
+  flex-direction: column;
+  min-height: 78vh;
+}
+#admin .card:has(#log-list){
+  float:left;
+  width: 460px;                /* 좌측 폭 고정 */
+  margin-right: 20px;
+}
+#admin .card:has(#log-view){
+  float:right;
+  width: calc(100% - 460px - 20px); /* 우측 = 나머지 */
+}
+#admin::after{ content:""; display:block; clear:both; } /* clearfix */
+
+/* (2) 카드 내부 스크롤은 내용 영역만 */
+#log-list,
+#log-view{
+  flex: 1 1 auto;
+  overflow:auto;
+}
+
+/* (3) 세션 상세 내부: 대화(왼쪽) + 평가(오른쪽) */
+.admin-detail-grid{
+  display:grid;
+  grid-template-columns: 1.5fr 1fr;  /* 왼쪽 더 넓게 */
+  gap:18px;
+  min-width: 0;
+}
+
+/* 대화 박스(왼쪽) */
+.admin-conv-pre{
+  white-space: pre-wrap;
+  background:#f7f7f7;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:12px;
+  height:68vh;           /* 대화 영역 자체 스크롤 */
+  overflow:auto;
+  margin:0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Roboto Mono", "Noto Sans Mono", monospace;
+  font-size: 15px;
+  line-height:1.6;
+  min-width: 0;
+}
+
+/* ===================== */
+/* 오른쪽 패널(평가) — 컨테이너만 스크롤 */
+/* ===================== */
+.admin-report{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 68vh;         /* 왼쪽과 높이 매칭 */
+  overflow-y: auto;     /* ← 패널 전체만 스크롤 */
+  padding-right: 6px;
+}
+
+/* 각 박스는 내부 스크롤 없음, 내용에 맞게 늘어남 */
+.admin-report > *{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:12px;
+  height: auto;         /* 내부 스크롤 제거 */
+  max-height: none;
+  overflow: visible;
+  word-break: break-word;
+  white-space: normal;
+  min-width: 0;
+}
+
+/* 빈 박스 스타일(사용 중이면) */
+.admin-report-empty{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:12px;
+  color:#777;
+  height: auto;
+  overflow: visible;
+}
+
+/* Kalamazoo 표 가독성 */
+.kz-title{ margin: 0 0 8px; }
+.mt-16{ margin-top:16px; }
+.t-right{ text-align:right; }
+
+.kz-score-table,
+.kz-items-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+  table-layout:auto;
+}
+.kz-items-table thead th{
+  position:sticky; top:0; background:#fff;
+}
+.kz-score-table td, .kz-score-table th,
+.kz-items-table td, .kz-items-table th{
+  border-bottom:1px solid var(--line);
+  padding:6px 8px;
+  word-break: break-word;
+  white-space: normal;
 }
 
 /* 반응형 */
 @media (max-width: 560px){
   nav ul{ padding: 0 16px 12px; }
-  .container{ padding: 16px; }
+  .container{ padding: 16px; max-width: 100%; }
   .chat-box{ height: 280px; }
+
+  /* 모바일에서는 목록/상세를 세로 스택 */
+  #admin .card:has(#log-list),
+  #admin .card:has(#log-view){
+    float:none; width:100%; min-height:auto; margin-right:0;
+  }
+  #admin::after{ display:none; }
+
+  .admin-detail-grid{ grid-template-columns: 1fr; }
+
+  /* 모바일에선 자동 높이(필요시만 스크롤) */
+  .admin-conv-pre{ height:auto; max-height:60vh; }
+  .admin-report{ height:auto; overflow:visible; }
+  .admin-report > *{ height:auto; max-height:none; overflow:visible; }
 }
