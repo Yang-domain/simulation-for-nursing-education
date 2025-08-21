@@ -27,6 +27,9 @@ app.get("/", (req, res) => {
 // ----- OpenAI 설정 -----
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// 환경변수에서 디브리핑 프롬프트 불러오기
+const DEBRIEF_PROMPT = process.env.DEBRIEF_PROMPT || "의사소통 디브리핑을 요약해줘.";
+
 // ✅ API: 시나리오 생성
 app.post("/api/generate-scenario", async (req, res) => {
   try {
@@ -36,7 +39,7 @@ app.post("/api/generate-scenario", async (req, res) => {
     });
     res.json({ scenario: completion.choices[0].message.content });
   } catch (err) {
-    console.error(err);
+    console.error("시나리오 오류:", err);
     res.status(500).json({ error: "시나리오 생성 실패" });
   }
 });
@@ -51,7 +54,7 @@ app.post("/api/chat", async (req, res) => {
     });
     res.json({ reply: completion.choices[0].message.content });
   } catch (err) {
-    console.error(err);
+    console.error("채팅 오류:", err);
     res.status(500).json({ error: "채팅 실패" });
   }
 });
@@ -59,25 +62,32 @@ app.post("/api/chat", async (req, res) => {
 // ✅ API: 디브리핑
 app.post("/api/debrief", async (req, res) => {
   try {
+    const { history } = req.body; // 학생과 환자의 대화 기록 전달
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "system", content: "간호학 시뮬레이션 디브리핑을 요약해줘." }],
+      messages: [
+        { role: "system", content: DEBRIEF_PROMPT },
+        { role: "user", content: `다음은 학생과 환자의 대화 기록이다: ${JSON.stringify(history)}` }
+      ],
+      response_format: { type: "json_object" }
     });
-    res.json({ debrief: completion.choices[0].message.content });
+
+    const report = JSON.parse(completion.choices[0].message.content);
+    res.json({ report });
   } catch (err) {
-    console.error(err);
+    console.error("디브리핑 오류:", err);
     res.status(500).json({ error: "디브리핑 실패" });
   }
 });
 
 // ✅ API: 기록 저장
 app.post("/api/transcript", (req, res) => {
-  const { title } = req.body;
+  const { title, content } = req.body;
   let transcripts = [];
   if (fs.existsSync(DATA_PATH)) {
     transcripts = JSON.parse(fs.readFileSync(DATA_PATH, "utf8"));
   }
-  const newT = { title, content: "대화 기록 예시" };
+  const newT = { title, content };
   transcripts.push(newT);
   fs.writeFileSync(DATA_PATH, JSON.stringify(transcripts, null, 2));
   res.json({ message: "저장 완료!" });
