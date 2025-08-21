@@ -69,7 +69,7 @@ app.post("/api/chat", async (req, res) => {
         content: `
 너는 환자 역할을 한다. 반드시 다음 규칙을 지켜라.
 
-출력은 반드시 JSON 형식으로 하며,
+출력은 반드시 json 형식으로 하며,
 아래 스키마를 따라야 한다:
 
 {
