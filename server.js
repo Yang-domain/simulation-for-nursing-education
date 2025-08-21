@@ -69,10 +69,19 @@ app.post("/api/chat", async (req, res) => {
         content: `
 너는 환자 역할을 한다. 반드시 다음 규칙을 지켜라.
 
+출력은 반드시 JSON 형식으로 하며,
+아래 스키마를 따라야 한다:
+
+{
+  "reply": "여기에 환자의 대답을 작성한다"
+}
+
+reply 필드만 포함해야 하며, 그 외 다른 키는 절대 넣지 않는다.
+한 번에 최대 2문장으로만 대답한다.
+
 [일반 지침]
 - 시나리오에서 벗어나지 말 것
 - 학생이 묻는 질문에만 답할 것
-- 한 번에 2문장 이내로만 말할 것
 - 의학 용어 대신 일상적인 표현만 사용할 것
 
 [대화 규칙]
@@ -98,21 +107,23 @@ app.post("/api/chat", async (req, res) => {
       { role: "user", content: message }
     ];
 
-    // 🔹 모델 호출 (JSON 강제 제거)
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages
+      messages,
+      response_format: { type: "json_object" } // ✅ JSON 강제
     });
 
-    // 🔹 모델 출력 그대로 가져오기
+    // 🔹 모델 출력(JSON) 파싱
     const content = completion.choices[0].message.content;
+    const parsed = JSON.parse(content);
 
-    res.json({ reply: content });
+    res.json({ reply: parsed.reply });
   } catch (err) {
     console.error("채팅 오류:", err);
     res.status(500).json({ error: "채팅 실패" });
   }
 });
+
 
 
 
