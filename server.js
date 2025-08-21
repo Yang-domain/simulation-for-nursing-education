@@ -28,16 +28,33 @@ app.get("/", (req, res) => {
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // 환경변수에서 디브리핑 프롬프트 불러오기
-const DEBRIEF_PROMPT = process.env.DEBRIEF_PROMPT || "의사소통 디브리핑을 요약해줘.";
+const DEBRIEF_PROMPT = process.env.DEBRIEF_PROMPT || "간호학생과 환자의 대화 내용을 Kalamazoo 의사소통 평가도구 기준으로 JSON으로 평가해줘.";
 
 // ✅ API: 시나리오 생성
 app.post("/api/generate-scenario", async (req, res) => {
   try {
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "system", content: "간호학 시뮬레이션 시나리오를 생성해줘." }],
+      messages: [
+        {
+          role: "system",
+          content: "너는 간호학 교육 전문가다. 임상 시뮬레이션 학습용 시나리오를 JSON으로 생성해라."
+        },
+        {
+          role: "user",
+          content: `다음 형식으로 출력해줘:
+{
+  "title": "시나리오 제목",
+  "text": "상황 설명",
+  "goal": "학습 목표"
+}`
+        }
+      ],
+      response_format: { type: "json_object" }
     });
-    res.json({ scenario: completion.choices[0].message.content });
+
+    const scenario = JSON.parse(completion.choices[0].message.content);
+    res.json({ scenario });
   } catch (err) {
     console.error("시나리오 오류:", err);
     res.status(500).json({ error: "시나리오 생성 실패" });
@@ -47,11 +64,25 @@ app.post("/api/generate-scenario", async (req, res) => {
 // ✅ API: 채팅
 app.post("/api/chat", async (req, res) => {
   try {
-    const { message } = req.body;
+    const { scenario, history, message } = req.body;
+
+    const messages = [
+      {
+        role: "system",
+        content: `너는 가상의 환자 역할을 수행한다. 아래 시나리오에 맞춰 환자처럼 대답해라.\n\n${scenario}`
+      },
+      ...history.map(h => ({
+        role: h.who === "학생" ? "user" : "assistant",
+        content: h.text
+      })),
+      { role: "user", content: message }
+    ];
+
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: message }],
+      messages
     });
+
     res.json({ reply: completion.choices[0].message.content });
   } catch (err) {
     console.error("채팅 오류:", err);
@@ -62,17 +93,26 @@ app.post("/api/chat", async (req, res) => {
 // ✅ API: 디브리핑
 app.post("/api/debrief", async (req, res) => {
   try {
-    const { history } = req.body; // 학생과 환자의 대화 기록 전달
+    const { student, scenario, history } = req.body;
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: DEBRIEF_PROMPT },
-        { role: "user", content: `다음은 학생과 환자의 대화 기록이다: ${JSON.stringify(history)}` }
+        {
+          role: "user",
+          content: `학생: ${JSON.stringify(student)}\n시나리오: ${JSON.stringify(scenario)}\n대화 기록: ${JSON.stringify(history)}`
+        }
       ],
       response_format: { type: "json_object" }
     });
 
-    const report = JSON.parse(completion.choices[0].message.content);
+    let report = {};
+    try {
+      report = JSON.parse(completion.choices[0].message.content);
+    } catch {
+      report = { summary: completion.choices[0].message.content };
+    }
+
     res.json({ report });
   } catch (err) {
     console.error("디브리핑 오류:", err);
@@ -82,15 +122,24 @@ app.post("/api/debrief", async (req, res) => {
 
 // ✅ API: 기록 저장
 app.post("/api/transcript", (req, res) => {
-  const { title, content } = req.body;
+  const { student, scenario, history, report } = req.body;
   let transcripts = [];
   if (fs.existsSync(DATA_PATH)) {
     transcripts = JSON.parse(fs.readFileSync(DATA_PATH, "utf8"));
   }
-  const newT = { title, content };
+
+  const newT = {
+    id: Date.now().toString(),
+    student,
+    scenario,
+    history,
+    report,
+    savedAt: new Date().toISOString()
+  };
+
   transcripts.push(newT);
   fs.writeFileSync(DATA_PATH, JSON.stringify(transcripts, null, 2));
-  res.json({ message: "저장 완료!" });
+  res.json({ ok: true });
 });
 
 // ✅ API: 기록 불러오기
@@ -98,6 +147,14 @@ app.get("/api/transcripts", (req, res) => {
   if (!fs.existsSync(DATA_PATH)) return res.json([]);
   const transcripts = JSON.parse(fs.readFileSync(DATA_PATH, "utf8"));
   res.json(transcripts);
+});
+
+app.get("/api/transcripts/:id", (req, res) => {
+  if (!fs.existsSync(DATA_PATH)) return res.status(404).json({ error: "없음" });
+  const transcripts = JSON.parse(fs.readFileSync(DATA_PATH, "utf8"));
+  const item = transcripts.find(t => t.id === req.params.id);
+  if (!item) return res.status(404).json({ error: "없음" });
+  res.json(item);
 });
 
 // ----- 서버 실행 -----
