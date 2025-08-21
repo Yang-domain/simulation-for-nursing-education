@@ -57,28 +57,20 @@ app.post("/api/generate-scenario", async (req, res) => {
 });
 
 
-// ✅ API: 채팅
+\// ✅ API: 채팅
 app.post("/api/chat", async (req, res) => {
   try {
     const CHAT_PROMPT = process.env.CHAT_PROMPT; // 환경변수 그대로 유지
     const { scenario, history, message } = req.body;
 
     const messages = [
-      // 환경변수에 CHAT_PROMPT가 있으면 적용
+      // 규칙 (환경변수 CHAT_PROMPT)
       ...(CHAT_PROMPT ? [{ role: "system", content: CHAT_PROMPT }] : []),
 
-      // 항상 적용되는 안전 지시문
+      // 시나리오 (참고용)
       {
         role: "system",
-        content:
-          "너는 가상의 환자 역할을 수행한다. 반드시 시나리오의 상황·성별·나이에 맞게 대답해라." +
-          "시나리오에 증상이나 과거력이 포함되어 있더라도, 간호학생이 직접 질문하기 전에는 절대 말하지 마라."
-      },
-
-      // 시나리오 내용 (참고용)
-      {
-        role: "user",
-        content: `참고용 시나리오: ${scenario}`
+        content: `시나리오: ${scenario}`
       },
 
       // 이전 대화 히스토리
@@ -87,7 +79,7 @@ app.post("/api/chat", async (req, res) => {
         content: h.text
       })),
 
-      // 새로 입력된 학생 메시지
+      // 새 입력된 학생 메시지
       { role: "user", content: message }
     ];
 
@@ -102,6 +94,7 @@ app.post("/api/chat", async (req, res) => {
     res.status(500).json({ error: "채팅 실패" });
   }
 });
+
 
 // ✅ API: 디브리핑
 app.post("/api/debrief", async (req, res) => {
