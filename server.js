@@ -28,7 +28,9 @@ app.get("/", (req, res) => {
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // 환경변수에서 디브리핑 프롬프트 불러오기
-const DEBRIEF_PROMPT = process.env.DEBRIEF_PROMPT || "간호학생과 환자의 대화 내용을 Kalamazoo 의사소통 평가도구 기준으로 JSON으로 평가해줘.";
+const DEBRIEF_PROMPT =
+  process.env.DEBRIEF_PROMPT ||
+  "간호학생과 환자의 대화 내용을 Kalamazoo 의사소통 평가도구 기준으로 JSON으로 평가해줘.";
 
 // ✅ API: 시나리오 생성
 app.post("/api/generate-scenario", async (req, res) => {
@@ -100,7 +102,9 @@ app.post("/api/debrief", async (req, res) => {
         { role: "system", content: DEBRIEF_PROMPT },
         {
           role: "user",
-          content: `학생: ${JSON.stringify(student)}\n시나리오: ${JSON.stringify(scenario)}\n대화 기록: ${JSON.stringify(history)}`
+          content: `학생: ${JSON.stringify(student)}\n시나리오: ${JSON.stringify(
+            scenario
+          )}\n대화 기록: ${JSON.stringify(history)}`
         }
       ],
       response_format: { type: "json_object" }
@@ -150,7 +154,8 @@ app.get("/api/transcripts", (req, res) => {
 });
 
 app.get("/api/transcripts/:id", (req, res) => {
-  if (!fs.existsSync(DATA_PATH)) return res.status(404).json({ error: "없음" });
+  if (!fs.existsSync(DATA_PATH))
+    return res.status(404).json({ error: "없음" });
   const transcripts = JSON.parse(fs.readFileSync(DATA_PATH, "utf8"));
   const item = transcripts.find(t => t.id === req.params.id);
   if (!item) return res.status(404).json({ error: "없음" });
@@ -158,7 +163,8 @@ app.get("/api/transcripts/:id", (req, res) => {
 });
 
 // ----- 서버 실행 -----
-const PORT = process.env.PORT || 10000;
+// ❗ Render는 반드시 process.env.PORT 사용해야 함
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
