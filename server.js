@@ -57,36 +57,51 @@ app.post("/api/generate-scenario", async (req, res) => {
 });
 
 
-//  API: 채팅
+// ✅ API: 채팅
 app.post("/api/chat", async (req, res) => {
   try {
-    const CHAT_PROMPT = process.env.CHAT_PROMPT; // 환경변수 그대로 유지
     const { scenario, history, message } = req.body;
 
     const messages = [
-      //  강력한 규칙 (환경변수 CHAT_PROMPT)
-      ...(CHAT_PROMPT ? [{ role: "system", content: CHAT_PROMPT }] : []),
+      // 🔹 강력한 규칙 (system role)
+      {
+        role: "system",
+        content: `
+너는 가상의 환자 역할을 한다. 반드시 다음 규칙을 지켜라.
 
-      //  시나리오 정보 (참고용)
+[일반 지침]
+- 시나리오에서 벗어나지 말 것
+- 학생이 묻는 질문에만 답할 것
+- 한 번에 2문장 이내로만 말할 것
+- 의학 용어 대신 일상적인 표현만 사용할 것
+- "환자:" 같은 접두사는 쓰지 말 것
+
+[대화 규칙]
+1. 상대방이 인사만 하면 → 간단히 인사만 답한다
+2. 상대방이 이름을 물으면 → 이름만 말한다
+`
+      },
+
+      // 🔹 시나리오 정보 (참고용)
       {
         role: "system",
         content: `시나리오: ${scenario}`
       },
 
-      //  이전 대화 히스토리
+      // 🔹 이전 대화 히스토리
       ...history.map(h => ({
         role: h.who === "학생" ? "user" : "assistant",
         content: h.text
       })),
 
-      //  새 입력된 학생 메시지
+      // 🔹 새 입력된 학생 메시지
       { role: "user", content: message }
     ];
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
-      //  출력 형식 강제 (JSON object, reply 키만 허용)
+      // 🔹 출력 형식 강제 (JSON, reply 키만 허용)
       response_format: {
         type: "json_schema",
         json_schema: {
@@ -103,7 +118,7 @@ app.post("/api/chat", async (req, res) => {
       }
     });
 
-    //  모델 출력(JSON) 파싱
+    // 🔹 모델 출력(JSON) 파싱
     const content = completion.choices[0].message.content;
     const parsed = JSON.parse(content);
 
@@ -113,7 +128,6 @@ app.post("/api/chat", async (req, res) => {
     res.status(500).json({ error: "채팅 실패" });
   }
 });
-
 
 
 //  API: 디브리핑
