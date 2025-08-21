@@ -35,22 +35,15 @@ const DEBRIEF_PROMPT =
 // ✅ API: 시나리오 생성
 app.post("/api/generate-scenario", async (req, res) => {
   try {
+    const SCENARIO_PROMPT = process.env.SCENARIO_PROMPT;
+    if (!SCENARIO_PROMPT) {
+      throw new Error("환경변수 SCENARIO_PROMPT가 설정되지 않았습니다.");
+    }
+
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        {
-          role: "system",
-          content: "너는 간호학 교육 전문가다. 임상 시뮬레이션 학습용 시나리오를 JSON으로 생성해라."
-        },
-        {
-          role: "user",
-          content: `다음 형식으로 출력해줘:
-{
-  "title": "시나리오 제목",
-  "text": "상황 설명",
-  "goal": "학습 목표"
-}`
-        }
+        { role: "system", content: SCENARIO_PROMPT }
       ],
       response_format: { type: "json_object" }
     });
@@ -62,6 +55,7 @@ app.post("/api/generate-scenario", async (req, res) => {
     res.status(500).json({ error: "시나리오 생성 실패" });
   }
 });
+
 
 // ✅ API: 채팅
 app.post("/api/chat", async (req, res) => {
