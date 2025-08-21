@@ -131,15 +131,49 @@ reply 필드만 포함해야 하며, 그 외 다른 키는 절대 넣지 않는�
 app.post("/api/debrief", async (req, res) => {
   try {
     const { student, scenario, history } = req.body;
+
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: DEBRIEF_PROMPT },
+        {
+          role: "system",
+          content: `
+You are an evaluator. 
+You must ONLY return valid JSON following this schema, without extra text.
+
+{
+  "scores": {
+    "done_well": number,
+    "needs_improvements": number,
+    "not_done": number,
+    "not_applicable": number
+  },
+  "totals": {
+    "total_items": number,
+    "applicable_items": number,
+    "done_well_count": number,
+    "needs_improvements_count": number,
+    "not_done_count": number,
+    "not_applicable_count": number
+  },
+  "details": [
+    {
+      "item_no": number,
+      "category": "string",
+      "item_text": "string",
+      "rating": number,
+      "comment": "string"
+    }
+  ],
+  "summary": "string"
+}
+          `
+        },
         {
           role: "user",
-          content: `학생: ${JSON.stringify(student)}\n시나리오: ${JSON.stringify(
-            scenario
-          )}\n대화 기록: ${JSON.stringify(history)}`
+          content: `학생: ${JSON.stringify(student)}
+시나리오: ${JSON.stringify(scenario)}
+대화 기록: ${JSON.stringify(history)}`
         }
       ],
       response_format: { type: "json_object" }
@@ -149,7 +183,8 @@ app.post("/api/debrief", async (req, res) => {
     try {
       report = JSON.parse(completion.choices[0].message.content);
     } catch {
-      report = { summary: completion.choices[0].message.content };
+      // JSON 파싱 실패 시 fallback
+      report = { summary: completion.choices[0].message.content || "No output" };
     }
 
     res.json({ report });
@@ -158,6 +193,7 @@ app.post("/api/debrief", async (req, res) => {
     res.status(500).json({ error: "디브리핑 실패" });
   }
 });
+
 
 //  API: 기록 저장
 app.post("/api/transcript", (req, res) => {
