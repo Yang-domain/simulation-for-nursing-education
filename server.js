@@ -2,10 +2,10 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import OpenAI from "openai";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import OpenAI from "openai";
 
 dotenv.config();
 
@@ -13,105 +13,81 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
-// ----- 경로/파일 설정 -----
+// ----- 경로 설정 -----
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_PATH = path.join(__dirname, "transcripts.json");
 
-// ✅ 정적 파일 서빙 (index.html, script.js, styles.css)
+// ----- 정적 파일 제공 (프론트엔드) -----
 app.use(express.static(__dirname));
-
-// 루트 요청 시 index.html 보내기
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// ----- 시나리오 생성 API -----
+// ----- OpenAI 설정 -----
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// ✅ API: 시나리오 생성
 app.post("/api/generate-scenario", async (req, res) => {
   try {
-    const userPrompt = req.body.prompt || "기본 프롬프트";
-
-    const response = await client.responses.create({
-      model: "gpt-4.1",
-      input: [
-        { role: "system", content: process.env.SCENARIO_PROMPT },
-        { role: "user", content: userPrompt }
-      ]
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "system", content: "간호학 시뮬레이션 시나리오를 생성해줘." }],
     });
-
-    res.json({ text: response.output[0].content[0].text });
-  } catch (error) {
-    console.error("❌ generate-scenario error:", error);
-    res.status(500).json({ error: error.message });
+    res.json({ scenario: completion.choices[0].message.content });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "시나리오 생성 실패" });
   }
 });
 
-// ----- 채팅 API -----
+// ✅ API: 채팅
 app.post("/api/chat", async (req, res) => {
   try {
-    const userMessage = req.body.message || "기본 메시지";
-
-    const response = await client.responses.create({
-      model: "gpt-4.1",
-      input: [
-        { role: "system", content: process.env.CHAT_PROMPT },
-        { role: "user", content: userMessage }
-      ]
+    const { message } = req.body;
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: message }],
     });
-
-    res.json({ text: response.output[0].content[0].text });
-  } catch (error) {
-    console.error("❌ chat error:", error);
-    res.status(500).json({ error: error.message });
+    res.json({ reply: completion.choices[0].message.content });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "채팅 실패" });
   }
 });
 
-// ----- 디브리핑 API -----
+// ✅ API: 디브리핑
 app.post("/api/debrief", async (req, res) => {
   try {
-    const transcript = req.body.transcript || "대화 기록 없음";
-
-    const response = await client.responses.create({
-      model: "gpt-4.1",
-      input: [
-        { role: "system", content: process.env.DEBRIEF_PROMPT },
-        { role: "user", content: transcript }
-      ]
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "system", content: "간호학 시뮬레이션 디브리핑을 요약해줘." }],
     });
-
-    res.json({ text: response.output[0].content[0].text });
-  } catch (error) {
-    console.error("❌ debrief error:", error);
-    res.status(500).json({ error: error.message });
+    res.json({ debrief: completion.choices[0].message.content });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "디브리핑 실패" });
   }
 });
 
-// ----- JSON 저장/로드 -----
-app.post("/api/save-transcript", (req, res) => {
-  try {
-    fs.writeFileSync(DATA_PATH, JSON.stringify(req.body, null, 2));
-    res.json({ success: true });
-  } catch (error) {
-    console.error("❌ save-transcript error:", error);
-    res.status(500).json({ error: error.message });
+// ✅ API: 기록 저장
+app.post("/api/transcript", (req, res) => {
+  const { title } = req.body;
+  let transcripts = [];
+  if (fs.existsSync(DATA_PATH)) {
+    transcripts = JSON.parse(fs.readFileSync(DATA_PATH, "utf8"));
   }
+  const newT = { title, content: "대화 기록 예시" };
+  transcripts.push(newT);
+  fs.writeFileSync(DATA_PATH, JSON.stringify(transcripts, null, 2));
+  res.json({ message: "저장 완료!" });
 });
 
-app.get("/api/load-transcript", (req, res) => {
-  try {
-    if (!fs.existsSync(DATA_PATH)) {
-      return res.json({ transcript: [] });
-    }
-    const data = fs.readFileSync(DATA_PATH, "utf-8");
-    res.json(JSON.parse(data));
-  } catch (error) {
-    console.error("❌ load-transcript error:", error);
-    res.status(500).json({ error: error.message });
-  }
+// ✅ API: 기록 불러오기
+app.get("/api/transcripts", (req, res) => {
+  if (!fs.existsSync(DATA_PATH)) return res.json([]);
+  const transcripts = JSON.parse(fs.readFileSync(DATA_PATH, "utf8"));
+  res.json(transcripts);
 });
 
 // ----- 서버 실행 -----
