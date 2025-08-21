@@ -1,3 +1,6 @@
+const API_BASE = "https://simulation-for-nursing-education.onrender.com";
+const api = (p) => `${API_BASE}${p}`;
+
 // ===== 전역 상태 =====
 let currentScenario = null;
 let history = []; // [{ who: "학생"|"환자"|"시스템", text: "..." }]
@@ -6,7 +9,6 @@ let latestReport = null; // ← 디브리핑 결과 저장해서 함께 저장 �
 
 // ===== API 베이스 (Render 서버 주소 고정) =====
 // 👇 Render에 배포된 server.js 주소로 교체 완료
-const api = (p) => `${API_BASE}${p}`;
 
 // ===== 공용 DOM =====
 const roleSec     = document.getElementById("role");
