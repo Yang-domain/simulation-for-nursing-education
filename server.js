@@ -8,7 +8,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 dotenv.config();
-console.log("SCENARIO_PROMPT:", process.env.SCENARIO_PROMPT);
 
 const app = express();
 app.use(cors());
