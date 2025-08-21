@@ -1,4 +1,4 @@
-// server.js (수정 버전)
+// server.js (최종 수정 버전)
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -22,6 +22,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_PATH = path.join(__dirname, "transcripts.json");
 
+// ✅ [추가] 정적 파일 제공 (index.html, script.js, style.css 등 프론트엔드 파일을 서비스)
+app.use(express.static(__dirname));
+
+// ✅ [추가] 기본 라우트 (주소 / 로 들어오면 index.html을 보여주기)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
 // ----- 시나리오 생성 API -----
 app.post("/api/generate-scenario", async (req, res) => {
   try {
@@ -30,14 +38,8 @@ app.post("/api/generate-scenario", async (req, res) => {
     const response = await client.responses.create({
       model: "gpt-4.1",
       input: [
-        {
-          role: "system",
-          content: process.env.SCENARIO_PROMPT // .env 관리 프롬프트
-        },
-        {
-          role: "user",
-          content: userPrompt
-        }
+        { role: "system", content: process.env.SCENARIO_PROMPT },
+        { role: "user", content: userPrompt }
       ]
     });
 
@@ -56,14 +58,8 @@ app.post("/api/chat", async (req, res) => {
     const response = await client.responses.create({
       model: "gpt-4.1",
       input: [
-        {
-          role: "system",
-          content: process.env.CHAT_PROMPT
-        },
-        {
-          role: "user",
-          content: userMessage
-        }
+        { role: "system", content: process.env.CHAT_PROMPT },
+        { role: "user", content: userMessage }
       ]
     });
 
@@ -82,14 +78,8 @@ app.post("/api/debrief", async (req, res) => {
     const response = await client.responses.create({
       model: "gpt-4.1",
       input: [
-        {
-          role: "system",
-          content: process.env.DEBRIEF_PROMPT
-        },
-        {
-          role: "user",
-          content: transcript
-        }
+        { role: "system", content: process.env.DEBRIEF_PROMPT },
+        { role: "user", content: transcript }
       ]
     });
 
